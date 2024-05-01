@@ -261,6 +261,273 @@ class EventManagementApp(tk.Tk):
         else:
             messagebox.showerror("Error", "Employee ID not found or invalid ID!")
 
+    def setup_clients_tab(self, frame):
+        ttk.Label(frame, text="Client ID:").grid(row=0, column=0)
+        self.client_id = ttk.Entry(frame)
+        self.client_id.grid(row=0, column=1)
+
+        ttk.Label(frame, text="Name:").grid(row=1, column=0)
+        self.client_name = ttk.Entry(frame)
+        self.client_name.grid(row=1, column=1)
+
+        ttk.Label(frame, text="Address:").grid(row=2, column=0)
+        self.client_address = ttk.Entry(frame)
+        self.client_address.grid(row=2, column=1)
+
+        ttk.Label(frame, text="Contact Details:").grid(row=3, column=0)
+        self.client_contact = ttk.Entry(frame)
+        self.client_contact.grid(row=3, column=1)
+
+        ttk.Label(frame, text="Budget:").grid(row=4, column=0)
+        self.client_budget = ttk.Entry(frame)
+        self.client_budget.grid(row=4, column=1)
+
+        ttk.Button(frame, text="Add Client", command=self.add_client).grid(row=5, column=1)
+        ttk.Button(frame, text="Modify Client", command=self.modify_client).grid(row=5, column=2)
+        ttk.Button(frame, text="Delete Client", command=self.delete_client).grid(row=5, column=3)
+        ttk.Button(frame, text="Find Client by ID", command=self.find_client_by_id).grid(row=5, column=4)
+
+    def add_client(self):
+        client_id = self.client_id.get().strip()
+        name = self.client_name.get().strip()
+        address = self.client_address.get().strip()
+        contact = self.client_contact.get().strip()
+        budget = self.client_budget.get().strip()
+
+        # Validate input fields are not empty
+        if not all([client_id, name, address, contact, budget]):
+            messagebox.showerror('Error', 'All fields must be filled out!')
+            return
+
+        try:
+            budget = float(budget)  # Ensure budget is a valid number
+        except ValueError:
+            messagebox.showerror('Error', 'Budget must be a numeric value.')
+            return
+
+        if client_id in self.data['clients']:
+            messagebox.showerror('Error', 'A client with this ID already exists!')
+            return
+
+        # Create new client instance and add to data
+        new_client = Client(client_id, name, address, contact, budget)
+        self.data['clients'][client_id] = new_client
+        save_data(self.data['clients'], self.data_files['clients'])
+        messagebox.showinfo('Success', 'Client added successfully!')
+
+    def modify_client(self):
+        client_id = self.client_id.get().strip()
+        if client_id not in self.data['clients']:
+            messagebox.showerror('Error', 'Client ID not found!')
+            return
+
+        name = self.client_name.get().strip()
+        address = self.client_address.get().strip()
+        contact = self.client_contact.get().strip()
+        budget = self.client_budget.get().strip()
+
+        try:
+            budget = float(budget) if budget else self.data['clients'][client_id].budget
+        except ValueError:
+            messagebox.showerror('Error', 'Budget must be a numeric value.')
+            return
+
+        client = self.data['clients'][client_id]
+        client.name = name if name else client.name
+        client.address = address if address else client.address
+        client.contact_details = contact if contact else client.contact_details
+        client.budget = budget if budget else client.budget
+
+        save_data(self.data['clients'], self.data_files['clients'])
+        messagebox.showinfo('Success', 'Client details updated successfully!')
+
+    def delete_client(self):
+        client_id = self.client_id.get().strip()
+        if client_id in self.data['clients']:
+            del self.data['clients'][client_id]
+            save_data(self.data['clients'], self.data_files['clients'])
+            messagebox.showinfo('Success', 'Client deleted successfully!')
+        else:
+            messagebox.showerror('Error', 'Client ID not found!')
+
+    def find_client_by_id(self):
+        client_id = self.client_id.get().strip()
+        client = self.data['clients'].get(client_id)
+        if client:
+            details = f"ID: {client.id}\nName: {client.name}\nAddress: {client.address}\nContact Details: {client.contact_details}\nBudget: {client.budget}"
+            messagebox.showinfo('Client Details', details)
+        else:
+            messagebox.showerror('Error', 'Client ID not found!')
+
+    def setup_suppliers_tab(self, frame):
+        ttk.Label(frame, text="Supplier ID:").grid(row=0, column=0)
+        self.sup_id = ttk.Entry(frame)
+        self.sup_id.grid(row=0, column=1)
+
+        ttk.Label(frame, text="Name:").grid(row=1, column=0)
+        self.sup_name = ttk.Entry(frame)
+        self.sup_name.grid(row=1, column=1)
+
+        ttk.Label(frame, text="Service Type:").grid(row=2, column=0)
+        self.sup_service_type = ttk.Entry(frame)
+        self.sup_service_type.grid(row=2, column=1)
+
+        ttk.Label(frame, text="Contact Details:").grid(row=3, column=0)
+        self.sup_contact = ttk.Entry(frame)
+        self.sup_contact.grid(row=3, column=1)
+
+        ttk.Button(frame, text="Add Supplier", command=self.add_supplier).grid(row=4, column=1)
+        ttk.Button(frame, text="Modify Supplier", command=self.modify_supplier).grid(row=4, column=2)
+        ttk.Button(frame, text="Delete Supplier", command=self.delete_supplier).grid(row=4, column=3)
+        ttk.Button(frame, text="Find Supplier by ID", command=self.find_supplier_by_id).grid(row=4, column=4)
+
+    def add_supplier(self):
+        supplier_id = self.sup_id.get().strip()
+        name = self.sup_name.get().strip()
+        service_type = self.sup_service_type.get().strip()
+        contact = self.sup_contact.get().strip()
+
+        if not all([supplier_id, name, service_type, contact]):
+            messagebox.showerror('Error', 'All fields must be filled out!')
+            return
+
+        if supplier_id in self.data['suppliers']:
+            messagebox.showerror('Error', 'A supplier with this ID already exists!')
+            return
+
+        new_supplier = Supplier(supplier_id, name, service_type, contact)
+        self.data['suppliers'][supplier_id] = new_supplier
+        save_data(self.data['suppliers'], self.data_files['suppliers'])
+        messagebox.showinfo('Success', 'Supplier added successfully!')
+
+    def modify_supplier(self):
+        supplier_id = self.sup_id.get().strip()
+        if supplier_id not in self.data['suppliers']:
+            messagebox.showerror('Error', 'Supplier ID not found!')
+            return
+
+        name = self.sup_name.get().strip()
+        service_type = self.sup_service_type.get().strip()
+        contact = self.sup_contact.get().strip()
+
+        supplier = self.data['suppliers'][supplier_id]
+        supplier.name = name if name else supplier.name
+        supplier.service_type = service_type if service_type else supplier.service_type
+        supplier.contact_details = contact if contact else supplier.contact_details
+
+        save_data(self.data['suppliers'], self.data_files['suppliers'])
+        messagebox.showinfo('Success', 'Supplier details updated successfully!')
+
+    def delete_supplier(self):
+        supplier_id = self.sup_id.get().strip()
+        if supplier_id in self.data['suppliers']:
+            del self.data['suppliers'][supplier_id]
+            save_data(self.data['suppliers'], self.data_files['suppliers'])
+            messagebox.showinfo('Success', 'Supplier deleted successfully!')
+        else:
+            messagebox.showerror('Error', 'Supplier ID not found!')
+
+    def find_supplier_by_id(self):
+        supplier_id = self.sup_id.get().strip()
+        supplier = self.data['suppliers'].get(supplier_id)
+        if supplier:
+            details = f"ID: {supplier.id}\nName: {supplier.name}\nService Type: {supplier.service_type}\nContact Details: {supplier.contact_details}"
+            messagebox.showinfo('Supplier Details', details)
+        else:
+            messagebox.showerror('Error', 'Supplier ID not found!')
+
+    def setup_events_tab(self, frame):
+        ttk.Label(frame, text="Event ID:").grid(row=0, column=0)
+        self.event_id = ttk.Entry(frame)
+        self.event_id.grid(row=0, column=1)
+
+        ttk.Label(frame, text="Type:").grid(row=1, column=0)
+        self.event_type = ttk.Entry(frame)
+        self.event_type.grid(row=1, column=1)
+
+        ttk.Label(frame, text="Date:").grid(row=2, column=0)
+        self.event_date = ttk.Entry(frame)
+        self.event_date.grid(row=2, column=1)
+
+        ttk.Label(frame, text="Venue:").grid(row=3, column=0)
+        self.event_venue = ttk.Entry(frame)
+        self.event_venue.grid(row=3, column=1)
+
+        ttk.Label(frame, text="Client ID:").grid(row=4, column=0)
+        self.event_client_id = ttk.Entry(frame)
+        self.event_client_id.grid(row=4, column=1)
+
+        ttk.Button(frame, text="Add Event", command=self.add_event).grid(row=5, column=1)
+        ttk.Button(frame, text="Modify Event", command=self.modify_event).grid(row=5, column=2)
+        ttk.Button(frame, text="Delete Event", command=self.delete_event).grid(row=5, column=3)
+        ttk.Button(frame, text="Find Event by ID", command=self.find_event_by_id).grid(row=5, column=4)
+
+    def add_event(self):
+        event_id = self.event_id.get().strip()
+        type = self.event_type.get().strip()
+        date = self.event_date.get().strip()
+        venue = self.event_venue.get().strip()
+        client_id = self.event_client_id.get().strip()
+
+        if not all([event_id, type, date, venue, client_id]):
+            messagebox.showerror('Error', 'All fields must be filled out!')
+            return
+
+        if event_id in self.data['events']:
+            messagebox.showerror('Error', 'An event with this ID already exists!')
+            return
+
+        if client_id not in self.data['clients']:
+            messagebox.showerror('Error', 'Client ID does not exist!')
+            return
+
+        new_event = Event(event_id, type, date, venue, client_id)
+        self.data['events'][event_id] = new_event
+        save_data(self.data['events'], self.data_files['events'])
+        messagebox.showinfo('Success', 'Event added successfully!')
+
+    def modify_event(self):
+        event_id = self.event_id.get().strip()
+        if event_id not in self.data['events']:
+            messagebox.showerror('Error', 'Event ID not found!')
+            return
+
+        type = self.event_type.get().strip()
+        date = self.event_date.get().strip()
+        venue = self.event_venue.get().strip()
+        client_id = self.event_client_id.get().strip()
+
+        if client_id and client_id not in self.data['clients']:
+            messagebox.showerror('Error', 'Client ID does not exist!')
+            return
+
+        event = self.data['events'][event_id]
+        event.type = type if type else event.type
+        event.date = date if date else event.date
+        event.venue = venue if venue else event.venue
+        event.client_id = client_id if client_id else event.client_id
+
+        save_data(self.data['events'], self.data_files['events'])
+        messagebox.showinfo('Success', 'Event details updated successfully!')
+
+    def delete_event(self):
+        event_id = self.event_id.get().strip()
+        if event_id in self.data['events']:
+            del self.data['events'][event_id]
+            save_data(self.data['events'], self.data_files['events'])
+            messagebox.showinfo('Success', 'Event deleted successfully!')
+        else:
+            messagebox.showerror('Error', 'Event ID not found!')
+
+    def find_event_by_id(self):
+        event_id = self.event_id.get().strip()
+        event = self.data['events'].get(event_id)
+        if event:
+            details = f"ID: {event.id}\nType: {event.type}\nDate: {event.date}\nVenue: {event.venue}\nClient ID: {event.client_id}"
+            messagebox.showinfo('Event Details', details)
+        else:
+            messagebox.showerror('Error', 'Event ID not found!')
+
 
 if __name__ == "__main__":
     app = EventManagementApp()
